@@ -169,6 +169,8 @@
         <input type="text" id="q" placeholder="Buscar por pregão, nº da ata ou objeto…" autocomplete="off">
       </div>
       <select id="f-pregao"><option value="">Todos os pregões</option></select>
+      <select id="f-om"><option value="">Todas as OM apoiadas</option></select>
+      <select id="f-sistema"><option value="">Todos os sistemas</option></select>
       <div class="chips" id="chips">
         <span class="chip active" data-f="all"><span class="pip"></span>Todas</span>
         <span class="chip" data-f="crit"><span class="pip"></span>≤30 dias</span>
@@ -194,6 +196,8 @@
               <th data-k="vinicio">Vig. início <span class="arr">▾</span></th>
               <th data-k="vfim_iso" class="sorted">Vig. fim <span class="arr">▾</span></th>
               <th data-k="dias">Dias rest. <span class="arr">▾</span></th>
+              <th data-k="om">OM apoiada <span class="arr">▾</span></th>
+              <th data-k="sistema">Sistema <span class="arr">▾</span></th>
               <th data-k="link">PNCP</th>
             </tr>
           </thead>
@@ -220,7 +224,7 @@ const GID = "27462454";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
 
 // índices das colunas no CSV (A=0 ... S=18)
-const COL = {pregao:1, ano:2, ata:3, objeto:4, assinatura:5, vinicio:6, vfim:7, link:18};
+const COL = {pregao:1, ano:2, ata:3, objeto:4, assinatura:5, vinicio:6, vfim:7, link:18, om:19, sistema:20};
 const MES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
 // data de hoje (zerada na meia-noite local)
@@ -228,7 +232,7 @@ const NOW = new Date(); const TODAY = new Date(NOW.getFullYear(), NOW.getMonth()
 
 const REFRESH_MS=5*60*1000; // re-lê a planilha a cada 5 minutos
 let DATA=[], TOTAL_ALL=0, pregSet=new Set(), booted=false;
-let state={q:"",pregao:"",status:"all",sortKey:"vfim_iso",sortDir:1};
+let state={q:"",pregao:"",om:"",sistema:"",status:"all",sortKey:"vfim_iso",sortDir:1};
 
 // ====== CSV PARSER (lida com aspas e vírgulas internas) ======
 function parseCSV(text){
@@ -283,7 +287,8 @@ async function load(){
         pregao:(r[COL.pregao]||"").trim(), ano:r[COL.ano], ata:r[COL.ata],
         objeto:(r[COL.objeto]||"").trim(), assinatura:r[COL.assinatura],
         vinicio:r[COL.vinicio], vfim:r[COL.vfim], vfim_iso:vfim.toISOString().slice(0,10),
-        dias, link:r[COL.link]
+        dias, link:r[COL.link],
+        om:(r[COL.om]||"").trim(), sistema:(r[COL.sistema]||"").trim()
       });
     }
     if(!data.length && !total) throw new Error("VAZIO");
@@ -374,15 +379,34 @@ function updateView(){
   [...pregSet].sort().forEach(p=>{const o=document.createElement("option");o.value=p;o.textContent=p;sel.appendChild(o);});
   if([...pregSet].includes(cur)){ sel.value=cur; } else { state.pregao=""; }
 
+  // filtros OM apoiada e Sistema (preservam seleção; opção p/ vazio)
+  fillSelect("f-om", DATA.map(d=>d.om), "Todas as OM apoiadas", v=>state.om=v);
+  fillSelect("f-sistema", DATA.map(d=>d.sistema), "Todos os sistemas", v=>state.sistema=v);
+
   render();
+}
+
+// monta/atualiza um <select> de filtro a partir de uma lista de valores
+function fillSelect(id, values, allLabel, resetState){
+  const sel=document.getElementById(id); const cur=sel.value;
+  const uniq=[...new Set(values.map(v=>(v||"").trim()))];
+  const hasEmpty=uniq.includes("");
+  const real=uniq.filter(v=>v!=="").sort();
+  sel.innerHTML='<option value="">'+allLabel+'</option>';
+  real.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;sel.appendChild(o);});
+  if(hasEmpty){const o=document.createElement("option");o.value="__EMPTY__";o.textContent="(não informado)";sel.appendChild(o);}
+  const valid=["",...real].concat(hasEmpty?["__EMPTY__"]:[]);
+  if(valid.includes(cur)){ sel.value=cur; } else { resetState(""); }
 }
 
 function render(){
   let rows=DATA.filter(d=>{
     if(state.pregao && d.pregao!==state.pregao) return false;
+    if(state.om){ if(state.om==="__EMPTY__"){ if(d.om!=="") return false; } else if(d.om!==state.om) return false; }
+    if(state.sistema){ if(state.sistema==="__EMPTY__"){ if(d.sistema!=="") return false; } else if(d.sistema!==state.sistema) return false; }
     if(state.status!=="all" && statusOf(d)!==state.status) return false;
     if(state.q){const q=state.q.toLowerCase();
-      if(!((d.pregao+" "+d.ata+" "+d.objeto).toLowerCase().includes(q))) return false;}
+      if(!((d.pregao+" "+d.ata+" "+d.objeto+" "+d.om+" "+d.sistema).toLowerCase().includes(q))) return false;}
     return true;
   });
   const k=state.sortKey, dir=state.sortDir;
@@ -401,6 +425,8 @@ function render(){
       <td class="mono nowrap">${esc(d.vinicio)}</td>
       <td class="mono nowrap">${esc(d.vfim)}</td>
       <td><span class="badge ${st}">${lab}</span></td>
+      <td class="nowrap">${d.om?esc(d.om):'<span style="color:var(--muted-dim)">—</span>'}</td>
+      <td class="nowrap">${d.sistema?esc(d.sistema):'<span style="color:var(--muted-dim)">—</span>'}</td>
       <td>${d.link?`<a class="lnk" href="${esc(d.link)}" target="_blank" rel="noopener">abrir ↗</a>`:"—"}</td>
     </tr>`;}).join("");
 }
@@ -408,6 +434,8 @@ function render(){
 function bindEvents(){
   document.getElementById("q").addEventListener("input",e=>{state.q=e.target.value;render();});
   document.getElementById("f-pregao").addEventListener("change",e=>{state.pregao=e.target.value;render();});
+  document.getElementById("f-om").addEventListener("change",e=>{state.om=e.target.value;render();});
+  document.getElementById("f-sistema").addEventListener("change",e=>{state.sistema=e.target.value;render();});
   document.getElementById("chips").addEventListener("click",e=>{
     const c=e.target.closest(".chip"); if(!c)return;
     document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
