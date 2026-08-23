@@ -119,9 +119,9 @@
   tbody tr:last-child td{border-bottom:none}
   .mono{font-family:'IBM Plex Mono',monospace;font-size:.82rem}
   .pregao{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--text);white-space:nowrap}
-  .objeto{max-width:340px;color:var(--muted);line-height:1.4}
-  .itens{max-width:320px;color:var(--muted);line-height:1.32;font-size:.76rem}
-  .forn{max-width:230px;color:var(--text);line-height:1.35;font-size:.82rem}
+  .objeto{max-width:230px;color:var(--muted);line-height:1.4}
+  .itens{max-width:240px;color:var(--muted);line-height:1.32;font-size:.76rem}
+  .forn{max-width:180px;color:var(--text);line-height:1.35;font-size:.8rem}
   .forn small{display:block;font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted-dim);margin-top:2px}
   .nowrap{white-space:nowrap}
   .badge{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:.74rem;
@@ -223,6 +223,7 @@
           <button id="btn-pdf" class="exp-btn" title="Baixar em PDF (respeita os filtros)">⬇ PDF</button>
         </div>
       </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted-dim);padding:7px 16px;border-bottom:1px solid var(--line-soft)">→ role a tabela para o lado para ver todas as colunas (Valor, Unidade apoiada, Acesso, Itens contemplados)</div>
       <div class="scroll">
         <table>
           <thead>
@@ -236,9 +237,9 @@
               <th data-k="dias">Dias rest. <span class="arr">▾</span></th>
               <th data-k="valorNum">Valor total reg. <span class="arr">▾</span></th>
               <th data-k="qtd">Qtd itens <span class="arr">▾</span></th>
-              <th data-k="itens">Itens contemplados <span class="arr">▾</span></th>
-              <th data-k="link">Acesso</th>
               <th data-k="unidade">Unidade apoiada <span class="arr">▾</span></th>
+              <th data-k="link">Acesso</th>
+              <th data-k="itens">Itens contemplados <span class="arr">▾</span></th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -502,9 +503,9 @@ function render(){
       <td><span class="badge ${st}">${lab}</span></td>
       <td class="mono nowrap">${brl(d.valorNum)}</td>
       <td class="mono" style="text-align:right">${qtdFmt(d.qtd)}</td>
-      <td class="itens">${d.itens?esc(d.itens):'<span style="color:var(--muted-dim)">—</span>'}</td>
-      <td>${d.link?`<a class="lnk" href="${esc(d.link)}" target="_blank" rel="noopener">abrir ↗</a>`:"—"}</td>
       <td class="mono nowrap">${d.unidade?esc(d.unidade):'<span style="color:var(--muted-dim)">—</span>'}</td>
+      <td>${d.link?`<a class="lnk" href="${esc(d.link)}" target="_blank" rel="noopener">abrir ↗</a>`:"—"}</td>
+      <td class="itens">${d.itens?esc(d.itens):'<span style="color:var(--muted-dim)">—</span>'}</td>
     </tr>`;}).join("");
 }
 
