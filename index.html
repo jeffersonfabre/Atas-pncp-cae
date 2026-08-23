@@ -261,7 +261,7 @@
 // ====== CONFIG ======
 const SHEET_ID="12OKMBhnOy0TXJ_Q6ESSBGollmE74TegJ__ZKS9HVxFc";
 const GID="143602916"; // aba DO - ARP
-const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&headers=0`;
+const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
 const MES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const NOW=new Date(); const TODAY=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate());
 
@@ -325,18 +325,22 @@ async function load(){
     const wantKeys=Object.keys(wantNorm);
     function matchKey(cell){
       const n=norm(cell); if(!n) return null;
-      if(wantNorm[n]) return wantNorm[n];                       // exato
-      for(const wk of wantKeys){ if(wk.length>=6 && (n.indexOf(wk)===0 || wk.indexOf(n)===0)) return wantNorm[wk]; } // tolerante
+      if(wantNorm[n]) return wantNorm[n];
+      for(const wk of wantKeys){ if(wk.length>=7 && (n.indexOf(wk)===0 || wk.indexOf(n)===0)) return wantNorm[wk]; }
       return null;
     }
-    // acha a linha de cabeçalho = a que reconhece mais títulos (tolerante a acento/pontuação)
+    // 1) acha a linha de cabeçalho = a que reconhece mais títulos
     let hi=-1, best=0, col={};
     for(let i=0;i<rows.length;i++){
       let c={}, cnt=0;
       rows[i].forEach((cell,idx)=>{ const k=matchKey(cell); if(k && c[k]===undefined){c[k]=idx;cnt++;} });
       if(cnt>best){ best=cnt; hi=i; col=c; }
     }
-    if(hi<0 || best<4 || col.ata===undefined || col.vfim===undefined) throw new Error("CABECALHO");
+    if(hi<0 || best<3) throw new Error("CABECALHO");
+    // 2) o gviz devolve em branco os títulos de colunas de data/número; completa por posição fixa conhecida
+    const FALLBACK={ata:1,pregao:2,objeto:3,forn:4,vinicio:8,vfim:9,valor:11,qtd:12,itens:13,controle:15,unidade:26};
+    Object.keys(FALLBACK).forEach(k=>{ if(col[k]===undefined) col[k]=FALLBACK[k]; });
+    if(col.ata===undefined || col.vfim===undefined) throw new Error("CABECALHO");
     const g=(r,k)=> col[k]!==undefined ? (r[col[k]]||"") : "";
     let data=[], tot=0;
     for(let i=hi+1;i<rows.length;i++){
