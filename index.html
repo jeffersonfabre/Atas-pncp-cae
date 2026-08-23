@@ -310,7 +310,7 @@ const WANT={ "Nº DA ATA":"ata","Nº DO PREGÃO":"pregao","FORNECEDOR":"forn","O
   "INÍCIO DA VIGÊNCIA":"vinicio","FIM DA VIGÊNCIA":"vfim","VALOR TOTAL REGISTRADO":"valor",
   "QUANTIDADE DE ITENS":"qtd","ITENS CONTEMPLADOS":"itens","UNIDADE APOIADA":"unidade",
   "Nº CONTROLE PNCP ATA":"controle" };
-function norm(s){return (s||"").toString().replace(/\s+/g," ").trim().toUpperCase();}
+function norm(s){return (s||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");}
 
 // ====== LOAD (ao vivo, lê por título de coluna) ======
 async function load(){
@@ -322,14 +322,14 @@ async function load(){
     if(/^\s*</.test(text)) throw new Error("PLANILHA_PRIVADA");
     const rows=parseCSV(text);
     const wantNorm={}; Object.keys(WANT).forEach(k=>wantNorm[norm(k)]=WANT[k]);
-    let hi=-1, col={};
+    // acha a linha de cabeçalho = a que reconhece mais títulos (tolerante a acento/pontuação)
+    let hi=-1, best=0, col={};
     for(let i=0;i<rows.length;i++){
-      const setn=rows[i].map(norm);
-      if(setn.indexOf(norm("Nº DA ATA"))>-1){
-        hi=i; rows[i].forEach((c,idx)=>{const k=wantNorm[norm(c)]; if(k) col[k]=idx;}); break;
-      }
+      let c={}, cnt=0;
+      rows[i].forEach((cell,idx)=>{ const k=wantNorm[norm(cell)]; if(k && c[k]===undefined){c[k]=idx;cnt++;} });
+      if(cnt>best){ best=cnt; hi=i; col=c; }
     }
-    if(hi<0 || col.ata===undefined || col.vfim===undefined) throw new Error("CABECALHO");
+    if(hi<0 || best<4 || col.ata===undefined || col.vfim===undefined) throw new Error("CABECALHO");
     const g=(r,k)=> col[k]!==undefined ? (r[col[k]]||"") : "";
     let data=[], tot=0;
     for(let i=hi+1;i<rows.length;i++){
