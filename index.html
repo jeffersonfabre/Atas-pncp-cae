@@ -261,7 +261,7 @@
 // ====== CONFIG ======
 const SHEET_ID="12OKMBhnOy0TXJ_Q6ESSBGollmE74TegJ__ZKS9HVxFc";
 const GID="143602916"; // aba DO - ARP
-const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
+const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&headers=0`;
 const MES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const NOW=new Date(); const TODAY=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate());
 
@@ -322,11 +322,18 @@ async function load(){
     if(/^\s*</.test(text)) throw new Error("PLANILHA_PRIVADA");
     const rows=parseCSV(text);
     const wantNorm={}; Object.keys(WANT).forEach(k=>wantNorm[norm(k)]=WANT[k]);
+    const wantKeys=Object.keys(wantNorm);
+    function matchKey(cell){
+      const n=norm(cell); if(!n) return null;
+      if(wantNorm[n]) return wantNorm[n];                       // exato
+      for(const wk of wantKeys){ if(wk.length>=6 && (n.indexOf(wk)===0 || wk.indexOf(n)===0)) return wantNorm[wk]; } // tolerante
+      return null;
+    }
     // acha a linha de cabeçalho = a que reconhece mais títulos (tolerante a acento/pontuação)
     let hi=-1, best=0, col={};
     for(let i=0;i<rows.length;i++){
       let c={}, cnt=0;
-      rows[i].forEach((cell,idx)=>{ const k=wantNorm[norm(cell)]; if(k && c[k]===undefined){c[k]=idx;cnt++;} });
+      rows[i].forEach((cell,idx)=>{ const k=matchKey(cell); if(k && c[k]===undefined){c[k]=idx;cnt++;} });
       if(cnt>best){ best=cnt; hi=i; col=c; }
     }
     if(hi<0 || best<4 || col.ata===undefined || col.vfim===undefined) throw new Error("CABECALHO");
