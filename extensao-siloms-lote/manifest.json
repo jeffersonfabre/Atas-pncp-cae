@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "SILOMS · Envio de PDFs em Lote",
+  "version": "1.0.0",
+  "description": "Aprende o passo a passo do envio de um PDF e repete automaticamente para todos os arquivos de uma pasta.",
+  "permissions": [
+    "scripting",
+    "storage",
+    "tabs",
+    "sidePanel",
+    "downloads"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Abrir painel de envio em lote"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
