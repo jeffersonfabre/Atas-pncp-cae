@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Envio de PDFs em Lote</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="glyph"></div>
+  <div>
+    <small>SILOMS · AUTOMAÇÃO</small>
+    <h1>Envio de PDFs em Lote</h1>
+  </div>
+</header>
+
+<div id="alvo" class="alvo">
+  <span class="rot">Aba alvo</span>
+  <span id="alvoUrl" class="url">—</span>
+</div>
+
+<!-- ETAPA 1 ------------------------------------------------------------- -->
+<section class="card">
+  <h2><span class="num">1</span> Aprender o processo</h2>
+  <p class="dica">
+    Deixe a aba do SILOMS aberta na tela inicial do envio. Clique em
+    <b>Gravar</b>, faça o envio de <b>um</b> PDF do começo ao fim e clique em
+    <b>Parar</b>. A extensão memoriza cada passo.
+  </p>
+  <div class="linha">
+    <button id="btnGravar" class="btn primario">● Gravar</button>
+    <button id="btnParar" class="btn" disabled>■ Parar</button>
+    <span id="contPassos" class="chip">0 passos</span>
+  </div>
+  <div id="avisoGravando" class="aviso oculto">
+    Gravando… tudo o que você fizer na aba alvo está sendo memorizado.
+  </div>
+</section>
+
+<!-- ETAPA 2 ------------------------------------------------------------- -->
+<section class="card">
+  <h2><span class="num">2</span> Revisar os passos</h2>
+  <div class="linha">
+    <button id="btnConferir" class="btn peq">Conferir na página</button>
+    <button id="btnAddEspera" class="btn peq">+ Espera</button>
+    <button id="btnLimpar" class="btn peq perigo">Apagar roteiro</button>
+  </div>
+  <div id="listaPassos" class="passos"><p class="vazio">Nenhum passo gravado ainda.</p></div>
+</section>
+
+<!-- ETAPA 3 ------------------------------------------------------------- -->
+<section class="card">
+  <h2><span class="num">3</span> Pasta com os PDFs</h2>
+  <div class="linha">
+    <button id="btnPasta" class="btn primario">Escolher pasta…</button>
+    <button id="btnRecarregar" class="btn peq">Reler pasta</button>
+  </div>
+  <input type="file" id="inputPasta" webkitdirectory multiple accept="application/pdf" hidden>
+  <label class="campo">
+    <span>Extrair dados do nome do arquivo (regex)</span>
+    <input type="text" id="regexNome" placeholder="^(.+)\.pdf$" spellcheck="false">
+  </label>
+  <p class="dica peq">
+    Disponíveis nos passos: <code>{{arquivo}}</code> <code>{{nome}}</code>
+    <code>{{g1}}</code>…<code>{{g9}}</code> <code>{{indice}}</code> <code>{{data}}</code>
+  </p>
+  <div id="listaArquivos" class="arquivos"><p class="vazio">Nenhuma pasta escolhida.</p></div>
+</section>
+
+<!-- ETAPA 4 ------------------------------------------------------------- -->
+<section class="card">
+  <h2><span class="num">4</span> Executar</h2>
+  <label class="check">
+    <input type="checkbox" id="optVoltar" checked>
+    Voltar à tela inicial antes de cada arquivo
+  </label>
+  <label class="check">
+    <input type="checkbox" id="optParar" checked>
+    Interromper o lote no primeiro erro
+  </label>
+  <label class="campo">
+    <span>Pausa entre arquivos (ms)</span>
+    <input type="number" id="pausaMs" value="1500" min="0" step="500">
+  </label>
+  <div class="linha">
+    <button id="btnTeste" class="btn">▷ Testar com 1 arquivo</button>
+    <button id="btnLote" class="btn primario">▶ Executar lote</button>
+    <button id="btnAbortar" class="btn perigo" disabled>■ Parar</button>
+  </div>
+  <div class="barra"><div id="progresso"></div></div>
+  <div id="resumo" class="resumo">—</div>
+</section>
+
+<!-- LOG ----------------------------------------------------------------- -->
+<section class="card">
+  <h2>Registro</h2>
+  <div class="linha">
+    <button id="btnCsv" class="btn peq">Baixar relatório CSV</button>
+    <button id="btnLimparLog" class="btn peq">Limpar</button>
+  </div>
+  <div id="log" class="log"></div>
+</section>
+
+<script src="panel.js"></script>
+</body>
+</html>
