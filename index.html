@@ -257,7 +257,7 @@
     </div>
 
     <footer>
-      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.4</span>
+      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.5</span>
       <span id="foot-stamp"></span>
     </footer>
   </div>
@@ -422,8 +422,8 @@ function updateView(){
   const anos=Object.keys(yr).sort();
   const maxp=Math.max(1,...anos.map(a=>yr[a]));
   document.getElementById("k-preg-sub").innerHTML='<div class="pbars">'+anos.map(a=>
-    `<div class="pbar${est[a]?' est':''}" title="${yr[a]} pregão(ões) em ${a}${est[a]?' (inclui estimativa p/ atas sem número)':''}">`+
-    `<span class="py">${a}${est[a]?' ~':''}</span>`+
+    `<div class="pbar" title="${yr[a]} pregão(ões) em ${a}">`+
+    `<span class="py">${a}</span>`+
     `<span class="ptrack"><span class="pfill" style="width:${(yr[a]/maxp*100).toFixed(0)}%"></span></span>`+
     `<span class="pn">${yr[a]}</span></div>`).join('')+'</div>';
   document.getElementById("k-crit").textContent=DATA.filter(d=>d.dias<=30).length;
