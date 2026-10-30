@@ -249,7 +249,7 @@
     </div>
 
     <footer>
-      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br</span>
+      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.1</span>
       <span id="foot-stamp"></span>
     </footer>
   </div>
@@ -339,7 +339,7 @@ async function load(){
     }
     if(hi<0 || best<3) throw new Error("CABECALHO");
     // 2) o gviz devolve em branco os títulos de colunas de data/número; completa por posição fixa conhecida
-    const FALLBACK={ata:1,pregao:2,objeto:3,forn:4,vinicio:8,vfim:9,valor:11,qtd:12,itens:13,controle:15,unidade:26};
+    const FALLBACK={ata:1,pregao:2,objeto:3,forn:4,vinicio:8,vfim:9,valor:11,qtd:12,itens:13,controle:15,unidade:27};
     Object.keys(FALLBACK).forEach(k=>{ if(col[k]===undefined) col[k]=FALLBACK[k]; });
     if(col.ata===undefined || col.vfim===undefined) throw new Error("CABECALHO");
     const g=(r,k)=> col[k]!==undefined ? (r[col[k]]||"") : "";
