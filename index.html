@@ -54,6 +54,14 @@
   .kpi .val{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:2.5rem;line-height:1;margin-top:8px}
   .kpi.warn .val{color:var(--amber)}.kpi.crit .val{color:var(--red)}
   .kpi .sub{font-size:.74rem;color:var(--muted-dim);margin-top:6px}
+  .pbars{display:flex;flex-direction:column;gap:5px;margin-top:9px}
+  .pbar{display:grid;grid-template-columns:52px 1fr 26px;align-items:center;gap:7px}
+  .pbar .py{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);white-space:nowrap}
+  .pbar .ptrack{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+  .pbar .pfill{display:block;height:100%;background:var(--cyan-dim);border-radius:4px}
+  .pbar.est .pfill{background:repeating-linear-gradient(45deg,var(--cyan-dim),var(--cyan-dim) 4px,transparent 4px,transparent 7px)}
+  .pbar.est .py{color:var(--amber)}
+  .pbar .pn{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;color:var(--text);text-align:right}
   .horizon{background:linear-gradient(160deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:12px;
     padding:16px 18px;margin-bottom:22px}
   .horizon h2{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
@@ -249,7 +257,7 @@
     </div>
 
     <footer>
-      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.3</span>
+      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.4</span>
       <span id="foot-stamp"></span>
     </footer>
   </div>
@@ -404,9 +412,20 @@ function updateView(){
   document.getElementById("k-total").textContent=DATA.length.toLocaleString("pt-BR");
   const pregSet=new Set(DATA.map(d=>d.pregao));
   document.getElementById("k-preg").textContent=pregSet.size;
-  const pregAno={};
-  pregSet.forEach(p=>{const m=(p||"").match(/\/(\d{4})\s*$/);const y=m?m[1]:"s/ nº";pregAno[y]=(pregAno[y]||0)+1;});
-  document.getElementById("k-preg-sub").textContent=Object.keys(pregAno).sort().map(y=>y+": "+pregAno[y]).join(" · ");
+  const yr={}, est={};
+  pregSet.forEach(p=>{const m=(p||"").match(/\/(\d{4})\s*$/); if(m) yr[m[1]]=(yr[m[1]]||0)+1;});
+  if(pregSet.has("")){ // estima o ano do pregão sem número pelo ano da própria ata
+    const ac={}; DATA.forEach(d=>{ if(!d.pregao){const m=(d.ata||"").match(/\/(\d{4})/); if(m) ac[m[1]]=(ac[m[1]]||0)+1;} });
+    const ey=Object.keys(ac).sort((a,b)=>ac[b]-ac[a])[0];
+    if(ey){ yr[ey]=(yr[ey]||0)+1; est[ey]=true; }
+  }
+  const anos=Object.keys(yr).sort();
+  const maxp=Math.max(1,...anos.map(a=>yr[a]));
+  document.getElementById("k-preg-sub").innerHTML='<div class="pbars">'+anos.map(a=>
+    `<div class="pbar${est[a]?' est':''}" title="${yr[a]} pregão(ões) em ${a}${est[a]?' (inclui estimativa p/ atas sem número)':''}">`+
+    `<span class="py">${a}${est[a]?' ~':''}</span>`+
+    `<span class="ptrack"><span class="pfill" style="width:${(yr[a]/maxp*100).toFixed(0)}%"></span></span>`+
+    `<span class="pn">${yr[a]}</span></div>`).join('')+'</div>';
   document.getElementById("k-crit").textContent=DATA.filter(d=>d.dias<=30).length;
   document.getElementById("k-warn").textContent=DATA.filter(d=>d.dias>30&&d.dias<=90).length;
   document.getElementById("foot-stamp").textContent="Atualizado em "+fmtBR(TODAY)+" · "+DATA.length+" atas vigentes";
