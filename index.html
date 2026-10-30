@@ -201,7 +201,7 @@
     <div class="controls">
       <div class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" id="q" placeholder="Buscar por ata, pregão, fornecedor, objeto…" autocomplete="off">
+        <input type="text" id="q" placeholder="Buscar por ata, pregão, fornecedor, objeto… (várias palavras, sem acento)" autocomplete="off">
       </div>
       <select id="f-pregao"><option value="">Todos os pregões</option></select>
       <select id="f-forn"><option value="">Todos os fornecedores</option></select>
@@ -249,7 +249,7 @@
     </div>
 
     <footer>
-      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.2</span>
+      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.3</span>
       <span id="foot-stamp"></span>
     </footer>
   </div>
@@ -312,6 +312,7 @@ const WANT={ "Nº DA ATA":"ata","Nº DO PREGÃO":"pregao","FORNECEDOR":"forn","O
   "QUANTIDADE DE ITENS":"qtd","ITENS CONTEMPLADOS":"itens","UNIDADE APOIADA":"unidade",
   "Nº CONTROLE PNCP ATA":"controle" };
 function norm(s){return (s||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");}
+function sNorm(s){return (s||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();}
 
 // ====== LOAD (ao vivo, lê por título de coluna) ======
 async function load(){
@@ -356,7 +357,8 @@ async function load(){
         dias:Math.round((vf.d-TODAY)/86400000),
         valorNum:parseNum(g(r,"valor")), qtd:parseNum(g(r,"qtd")),
         itens:(g(r,"itens")||"").trim(), unidade:(g(r,"unidade")||"").trim(),
-        link:buildLink(g(r,"controle"))
+        link:buildLink(g(r,"controle")),
+        _s:sNorm([g(r,"ata"),g(r,"pregao"),g(r,"forn"),g(r,"objeto"),g(r,"itens"),g(r,"unidade")].join(" "))
       });
     }
     if(!data.length && !tot) throw new Error("VAZIO");
@@ -483,8 +485,9 @@ function render(){
     if(state.forn){ if(state.forn==="__EMPTY__"){ if(d.forn!=="") return false; } else if(d.forn!==state.forn) return false; }
     if(state.unidade){ if(state.unidade==="__EMPTY__"){ if(d.unidade!=="") return false; } else if(d.unidade!==state.unidade) return false; }
     if(state.status!=="all" && statusOf(d)!==state.status) return false;
-    if(state.q){const q=state.q.toLowerCase();
-      if(!((d.ata+" "+d.pregao+" "+d.forn+" "+d.objeto+" "+d.itens+" "+d.unidade).toLowerCase().includes(q))) return false;}
+    if(state.q){const terms=sNorm(state.q).split(/\s+/).filter(Boolean);
+      const hay=d._s||sNorm([d.ata,d.pregao,d.forn,d.objeto,d.itens,d.unidade].join(" "));
+      if(!terms.every(t=>hay.includes(t))) return false;}
     return true;
   });
   const k=state.sortKey, dir=state.sortDir;
