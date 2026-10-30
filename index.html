@@ -178,7 +178,7 @@
   <div id="app">
     <section class="kpis">
       <div class="kpi"><div class="lab">Atas vigentes</div><div class="val" id="k-total">—</div><div class="sub">aba DO - ARP</div></div>
-      <div class="kpi"><div class="lab">Pregões distintos</div><div class="val" id="k-preg">—</div><div class="sub">com ata vigente</div></div>
+      <div class="kpi"><div class="lab">Total de pregões</div><div class="val" id="k-preg">—</div><div class="sub" id="k-preg-sub">por ano</div></div>
       <div class="kpi crit"><div class="lab">Vencendo ≤ 30 dias</div><div class="val" id="k-crit">—</div><div class="sub">atenção imediata</div></div>
       <div class="kpi warn"><div class="lab">Vencendo 31–90 dias</div><div class="val" id="k-warn">—</div><div class="sub">renovação no radar</div></div>
     </section>
@@ -249,7 +249,7 @@
     </div>
 
     <footer>
-      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.1</span>
+      <span>CAE — Força Aérea Brasileira · Dados lidos ao vivo da planilha ASSGOV (aba DO - ARP) · fonte PNCP / Compras.gov.br · v1.2</span>
       <span id="foot-stamp"></span>
     </footer>
   </div>
@@ -400,7 +400,11 @@ function scaffold(){
 
 function updateView(){
   document.getElementById("k-total").textContent=DATA.length.toLocaleString("pt-BR");
-  document.getElementById("k-preg").textContent=new Set(DATA.map(d=>d.pregao)).size;
+  const pregSet=new Set(DATA.map(d=>d.pregao));
+  document.getElementById("k-preg").textContent=pregSet.size;
+  const pregAno={};
+  pregSet.forEach(p=>{const m=(p||"").match(/\/(\d{4})\s*$/);const y=m?m[1]:"s/ nº";pregAno[y]=(pregAno[y]||0)+1;});
+  document.getElementById("k-preg-sub").textContent=Object.keys(pregAno).sort().map(y=>y+": "+pregAno[y]).join(" · ");
   document.getElementById("k-crit").textContent=DATA.filter(d=>d.dias<=30).length;
   document.getElementById("k-warn").textContent=DATA.filter(d=>d.dias>30&&d.dias<=90).length;
   document.getElementById("foot-stamp").textContent="Atualizado em "+fmtBR(TODAY)+" · "+DATA.length+" atas vigentes";
